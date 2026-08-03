@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const { sendWhatsAppMessage } = require("../services/whatsappService");
+
 // Verify Webhook
 router.get("/", (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
@@ -28,9 +30,23 @@ router.post("/", async (req, res) => {
     console.log("📩 Message received!");
     console.log(JSON.stringify(req.body, null, 2));
 
-    // Always reply 200 to Meta
-    res.sendStatus(200);
+    const message =
+      req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
+    if (message) {
+      const from = message.from;
+      const text = message.text?.body;
+
+      console.log("From:", from);
+      console.log("Text:", text);
+
+      await sendWhatsAppMessage(
+        from,
+        "Hello! Welcome to Infinity AI."
+      );
+    }
+
+    res.sendStatus(200);
   } catch (error) {
     console.error(error);
     res.sendStatus(500);
